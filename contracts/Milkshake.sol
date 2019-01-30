@@ -28,7 +28,7 @@ contract Milkshake
         {
             revert("withdrawal failed");
         }
-
+        
         _balances[msg.sender] = 0;
     }
 

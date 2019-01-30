@@ -9,7 +9,7 @@ const Straw = artifacts.require('Straw');
 contract('Re-entrancy test', async (accounts) => 
 {
     const zero = 0x0000000000000000000000000000000000000000;
-    const ether = 1e+18;
+    const ether = web3.utils.toWei('1', 'ether');
 
     let owner = accounts[0];
     let attacker = accounts[1];
@@ -79,8 +79,8 @@ contract('Re-entrancy test', async (accounts) =>
             console.log('\nperforming attack...');
             let currentIteration = 0;
             let maxIterations = 100;
-            let triggerAmount = ether / 10;
-            let leftoverAmount = ether / 1000;
+            let triggerAmount = web3.utils.toBN(0.01 * ether);
+            let leftoverAmount = web3.utils.toBN(0.001 * ether);
             while(web3.utils.toBN(milkshakeContractBalance)
                 .gt(web3.utils.toBN(leftoverAmount))
                 && maxIterations > currentIteration)
@@ -90,11 +90,13 @@ contract('Re-entrancy test', async (accounts) =>
                 
                 console.log('trigger amount ' + triggerAmount / ether);
 
+                let amountToSend = web3.utils.toBN(triggerAmount);
+                let amountToCollect = amountToSend.mul(web3.utils.toBN(5));
                 await strawContract.collect(
-                    web3.utils.toBN(triggerAmount).mul(web3.utils.toBN(20)), 
+                    amountToCollect, 
                     { 
                         from: attacker, 
-                        value: triggerAmount 
+                        value: amountToSend
                     });
    
                 milkshakeContractBalance = await web3.eth.getBalance(milkshakeContract.address);
@@ -119,14 +121,14 @@ contract('Re-entrancy test', async (accounts) =>
                 console.log('straw balance ' + strawContractBalance / ether);
                 console.log('attacker balance ' + attackerBalance / ether);
 
-                triggerAmount = 10 * triggerAmount;
-                if(triggerAmount > attackerBalance)
+                triggerAmount = web3.utils.toBN(triggerAmount).mul(web3.utils.toBN(10));
+                if(web3.utils.toBN(triggerAmount).gt(web3.utils.toBN(attackerBalance)))
                 {
-                    triggerAmount = 0.9 * attackerBalance;
+                    triggerAmount = web3.utils.toBN(attackerBalance).mul(web3.utils.toBN(8)).div(web3.utils.toBN(10));
                 }
-                if(triggerAmount > milkshakeContractBalance)
+                if(web3.utils.toBN(triggerAmount).gt(web3.utils.toBN(milkshakeContractBalance)))
                 {
-                    triggerAmount = milkshakeContractBalance;
+                    triggerAmount = web3.utils.toBN(milkshakeContractBalance);
                 }
             }
 
